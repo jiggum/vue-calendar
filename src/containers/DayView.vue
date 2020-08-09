@@ -40,14 +40,17 @@ export default Vue.extend({
       const dayText = I18nService.t(DayOfTheWeekI18nMap[this.day as DayOfTheWeekTypes])
       return `${this.month}${I18nService.t('time.month')} ${this.date}${I18nService.t('time.day')} (${dayText})`
     },
-    taskTodoText() {
-      return `${I18nService.t('word.taskTodo')} (1)`
-    },
-    taskEndedText() {
-      return `${I18nService.t('word.taskEnded')} (1)`
-    },
     todoTasks() {
       return this.store.tasks.filter((task: Task) => !task.ended).values()
+    },
+    endedTasks() {
+      return this.store.tasks.filter((task: Task) => task.ended).values()
+    },
+    taskTodoText() {
+      return `${I18nService.t('word.taskTodo')} (${this.todoTasks.length})`
+    },
+    taskEndedText() {
+      return `${I18nService.t('word.taskEnded')} (${this.endedTasks.length})`
     },
     newTask() {
       return new Task({
