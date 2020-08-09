@@ -1,7 +1,7 @@
 <template>
   <section ref="section">
     <header>
-      <div class="year">{{ year }}</div>
+      <div class="year">{{ dateData.year }}</div>
       <div class="dateText">{{ dateText }}</div>
       <svg width="20" height="20" viewBox="0 0 20 20" class="navigate left" @click="navigateLeft">
         <rect x="0.5" y="0.5" width="19" height="19" rx="3.5" stroke="#000000" fill="none"/>
@@ -93,7 +93,6 @@ import Task from '@/models/Task'
 import {
   dateToTimestamp,
   timestampToDate,
-  getDay,
   getDate,
   getYear,
   getMonth,
@@ -103,18 +102,15 @@ import RouteService from '@/services/RouteService'
 
 export default Vue.extend({
   name: 'DayView',
-  props: ['year', 'month', 'date', 'now'],
+  props: ['date', 'now'],
   computed: {
-    day() {
-      return getDay(dateToTimestamp({
-        year: this.year,
-        month: this.month,
-        date: this.date,
-      }))
+    dateData() {
+      return timestampToDate(this.date)
     },
     dateText() {
-      const dayText = I18nService.t(DayOfTheWeekI18nMap[this.day as DayOfTheWeekTypes])
-      return `${this.month}${I18nService.t('time.month')} ${this.date}${I18nService.t('time.day')} (${dayText})`
+      const dayText = I18nService.t(DayOfTheWeekI18nMap[this.dateData.day as DayOfTheWeekTypes])
+      // @ts-ignore
+      return `${this.dateData.month}${I18nService.t('time.month')} ${this.dateData.date}${I18nService.t('time.day')} (${dayText})`
     },
     todoTasks() {
       return this
@@ -123,7 +119,9 @@ export default Vue.extend({
         .tasks
         .filter((task: Task) => {
           const { year, month, date } = timestampToDate(task.date)
-          return !task.ended && year === this.year && month === this.month && date === this.date
+          return !task.ended && year === this.dateData.year
+            && month === this.dateData.month
+            && date === this.dateData.date
         })
         .values()
         .sort((left: Task, right: Task) => {
@@ -138,7 +136,9 @@ export default Vue.extend({
         .tasks
         .filter((task: Task) => {
           const { year, month, date } = timestampToDate(task.date)
-          return task.ended && year === this.year && month === this.month && date === this.date
+          return task.ended && year === this.dateData.year
+            && month === this.dateData.month
+            && date === this.dateData.date
         })
         .values()
         .sort((left: Task, right: Task) => {
@@ -157,9 +157,12 @@ export default Vue.extend({
     newTask() {
       return new Task({
         date: dateToTimestamp({
-          year: this.year,
-          month: this.month,
-          date: this.date,
+          // @ts-ignore
+          year: this.dateData.year,
+          // @ts-ignore
+          month: this.dateData.month,
+          // @ts-ignore
+          date: this.dateData.date,
         }),
       }, true)
     },

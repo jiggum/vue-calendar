@@ -1,17 +1,15 @@
 <template>
   <div class="App">
-    <DayView v-if="windowWidth >= 1269" :year="year" :month="month" :date="date - 1" :now="ts"/>
-    <DayView :year="year" :month="month" :date="date" :now="ts"/>
-    <DayView v-if="windowWidth >= 1269" :year="year" :month="month" :date="date + 1" :now="ts"/>
+    <DayView v-if="windowWidth >= 1269" :date="yesterday" :now="today" />
+    <DayView :date="today" :now="today" />
+    <DayView v-if="windowWidth >= 1269" :date="tomorrow" :now="today"/>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue'
 import DayView from '@/containers/DayView.vue'
-import {
-  getDate, getMonth, getYear, dateToTimestamp,
-} from '@/utils/dateUtils'
+import { dateToTimestamp } from '@/utils/dateUtils'
 import RouteService from '@/services/RouteService'
 
 export default Vue.extend({
@@ -27,7 +25,7 @@ export default Vue.extend({
     }
   },
   computed: {
-    ts() {
+    today() {
       const match = RouteService.match(':year/:month/:date', this.currentRoute) as {
             year: number;
             month: number;
@@ -36,17 +34,15 @@ export default Vue.extend({
       // @ts-ignore
       return match ? dateToTimestamp(match) : this.now
     },
-    year() {
+    yesterday() {
       // @ts-ignore
-      return getYear(this.ts)
+      const date = new Date(this.today)
+      return date.setDate(date.getDate() - 1).valueOf()
     },
-    month() {
+    tomorrow() {
       // @ts-ignore
-      return getMonth(this.ts)
-    },
-    date() {
-      // @ts-ignore
-      return getDate(this.ts)
+      const date = new Date(this.today)
+      return date.setDate(date.getDate() + 1).valueOf()
     },
   },
   mounted() {

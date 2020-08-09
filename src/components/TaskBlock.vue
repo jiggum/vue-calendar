@@ -178,7 +178,7 @@ export default Vue.extend({
             Math.abs(this.mouseDiffY)
             > (this.$refs.wrapper as HTMLDivElement).clientHeight * MOVE_HEIGHT_RATIO_THRESHOLD
           ) {
-            if (this.mouseDiffY >= 0 && this.moveDownPriority) {
+            if (this.mouseDiffY >= 0 && this.moveDownPriority !== undefined) {
               store.upsertTask({
                 title: this.task.title,
                 id: this.task.id,
@@ -191,7 +191,7 @@ export default Vue.extend({
                 * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
               this.mouseDiffY = -(this.$refs.wrapper as HTMLDivElement).clientHeight
                 * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
-            } else if (this.mouseDiffY < 0 && this.moveUpPriority) {
+            } else if (this.mouseDiffY < 0 && this.moveUpPriority !== undefined) {
               store.upsertTask({
                 title: this.task.title,
                 id: this.task.id,
