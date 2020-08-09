@@ -118,6 +118,7 @@ export default Vue.extend({
     },
     todoTasks() {
       return this
+        // @ts-ignore
         .store
         .tasks
         .filter((task: Task) => {
@@ -132,6 +133,7 @@ export default Vue.extend({
     },
     endedTasks() {
       return this
+        // @ts-ignore
         .store
         .tasks
         .filter((task: Task) => {
@@ -145,9 +147,11 @@ export default Vue.extend({
         })
     },
     taskTodoText() {
+      // @ts-ignore
       return `${I18nService.t('word.taskTodo')} (${this.todoTasks.length})`
     },
     taskEndedText() {
+      // @ts-ignore
       return `${I18nService.t('word.taskEnded')} (${this.endedTasks.length})`
     },
     newTask() {

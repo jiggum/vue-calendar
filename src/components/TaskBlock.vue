@@ -163,9 +163,11 @@ export default Vue.extend({
       if (Math.abs(this.mouseDiffX) >= Math.abs(this.mouseDiffY) && this.index === this.initIndex) {
         this.backgroundColor = undefined
         if ((this.task.ended || this.mouseDiffX <= 0) && e.target) {
-          this.opacity = Math.max(1 - Math.abs(this.mouseDiffX) / (e.target.clientWidth / 2), 0)
+          this.opacity = Math.max(1 - Math.abs(this.mouseDiffX)
+            / ((e.target as HTMLDivElement).clientWidth / 2), 0)
         } else if (this.mouseDiffX >= 0 && e.target) {
-          const ratio = Math.min(this.mouseDiffX / (e.target.clientWidth / 2), 1)
+          const ratio = Math.min(this.mouseDiffX
+            / ((e.target as HTMLDivElement).clientWidth / 2), 1)
           this.backgroundColor = mixColor('#5AAAFA', ENDED_COLOR, ratio)
         }
       } else {
@@ -174,7 +176,7 @@ export default Vue.extend({
         if (this.$refs.wrapper) {
           if (
             Math.abs(this.mouseDiffY)
-            > this.$refs.wrapper.clientHeight * MOVE_HEIGHT_RATIO_THRESHOLD
+            > (this.$refs.wrapper as HTMLDivElement).clientHeight * MOVE_HEIGHT_RATIO_THRESHOLD
           ) {
             if (this.mouseDiffY >= 0 && this.moveDownPriority) {
               store.upsertTask({
@@ -185,9 +187,10 @@ export default Vue.extend({
                 ended: this.task.ended,
               })
               this.originMouseClientY = clientY
-                + this.$refs.wrapper.clientHeight
+                + (this.$refs.wrapper as HTMLDivElement).clientHeight
                 * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
-              this.mouseDiffY = -this.$refs.wrapper.clientHeight * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
+              this.mouseDiffY = -(this.$refs.wrapper as HTMLDivElement).clientHeight
+                * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
             } else if (this.mouseDiffY < 0 && this.moveUpPriority) {
               store.upsertTask({
                 title: this.task.title,
@@ -197,9 +200,10 @@ export default Vue.extend({
                 ended: this.task.ended,
               })
               this.originMouseClientY = clientY
-                - this.$refs.wrapper.clientHeight
+                - (this.$refs.wrapper as HTMLDivElement).clientHeight
                 * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
-              this.mouseDiffY = this.$refs.wrapper.clientHeight * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
+              this.mouseDiffY = (this.$refs.wrapper as HTMLDivElement).clientHeight
+                * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
             }
           }
         }
@@ -233,6 +237,7 @@ export default Vue.extend({
       title: this.task.title,
       focus: false,
       error: false,
+      prevEditState: this.edit,
       editState: this.edit,
       originMouseClientX: 0,
       originMouseClientY: 0,
@@ -240,7 +245,7 @@ export default Vue.extend({
       mouseDiffX: 0,
       mouseDiffY: 0,
       opacity: 1,
-      backgroundColor: undefined,
+      backgroundColor: undefined as string | undefined,
       deleteText: I18nService.t('word.delete'),
       editText: I18nService.t('word.edit'),
       cancelText: I18nService.t('word.cancel'),
@@ -269,18 +274,20 @@ export default Vue.extend({
   },
   updated() {
     if (!this.prevEditState && this.editState && this.$refs.input) {
-      this.$refs.input.focus()
+      (this.$refs.input as HTMLInputElement).focus()
       this.autoScroll()
     }
     this.prevEditState = this.editState
   },
   mounted() {
     if (this.editState && this.$refs.input) {
-      this.$refs.input.focus()
+      (this.$refs.input as HTMLInputElement).focus()
       this.autoScroll()
     }
     if (this.$refs.presenter) {
+      // @ts-ignore
       this.$refs.presenter.addEventListener('mousedown', this.handleMouseDown)
+      // @ts-ignore
       this.$refs.presenter.addEventListener('touchstart', this.handleTouchstart)
     }
   },
@@ -290,7 +297,9 @@ export default Vue.extend({
     document.removeEventListener('touchmove', this.handleTouchMove)
     document.removeEventListener('touchend', this.handleTouchEnd)
     if (this.$refs.presenter) {
+      // @ts-ignore
       this.$refs.presenter.removeEventListener('mousedown', this.handleMouseDown)
+      // @ts-ignore
       this.$refs.presenter.removeEventListener('touchstart', this.handleTouchstart)
     }
   },

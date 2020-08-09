@@ -17,6 +17,7 @@ module.exports = {
     semi: [2, 'never'],
     'import/prefer-default-export': 0,
     '@typescript-eslint/interface-name-prefix': 0,
+    '@typescript-eslint/ban-ts-ignore': 0,
     'nonblock-statement-body-position': 0,
   },
   overrides: [

@@ -33,15 +33,19 @@ export default Vue.extend({
             month: number;
             date: number;
           } | null
+      // @ts-ignore
       return match ? dateToTimestamp(match) : this.now
     },
     year() {
+      // @ts-ignore
       return getYear(this.ts)
     },
     month() {
+      // @ts-ignore
       return getMonth(this.ts)
     },
     date() {
+      // @ts-ignore
       return getDate(this.ts)
     },
   },
