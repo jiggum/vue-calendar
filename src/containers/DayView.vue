@@ -9,7 +9,10 @@
         <div class="title">{{ taskTodoText }}</div>
         <div class="taskContainer">
           <AddTaskButton :onClick="initTask" />
-          <Task v-if="state.init" :edit="true" :onCancel="resetInit"/>
+          <template v-for="task in todoTasks">
+            <TaskBlock :key="task.getKey()" :task="task" />
+          </template>
+          <TaskBlock v-if="state.init" :edit="true" :onCancel="resetInit" :task="newTask"/>
         </div>
       </div>
       <div class="taskSection">
@@ -24,7 +27,10 @@ import Vue from 'vue'
 import I18nService from '@/services/I18nService'
 import DayOfTheWeekTypes, { DayOfTheWeekI18nMap } from '@/consts/DayOfTheWeekTypes'
 import AddTaskButton from '@/components/AddTaskButton.vue'
-import Task from '@/components/Task.vue'
+import TaskBlock from '@/components/TaskBlock.vue'
+import Task from '@/models/Task'
+import { dateToTimestamp } from '@/utils/dateUtils'
+import store from '@/store'
 
 export default Vue.extend({
   name: 'DayView',
@@ -40,16 +46,29 @@ export default Vue.extend({
     taskEndedText() {
       return `${I18nService.t('word.taskEnded')} (1)`
     },
+    todoTasks() {
+      return this.store.tasks.filter((task: Task) => !task.ended).values()
+    },
+    newTask() {
+      return new Task({
+        date: dateToTimestamp({
+          year: this.year,
+          month: this.month,
+          date: this.date,
+        }),
+      })
+    },
   },
   components: {
     AddTaskButton,
-    Task,
+    TaskBlock,
   },
   data() {
     return {
       state: {
         init: false,
       },
+      store: store.state,
     }
   },
   methods: {

@@ -1,8 +1,8 @@
 <template>
   <div class="Task">
     <div class="presenter" :class="{ active: edit, focus }" @click="!edit && !focus && handleClick">
-      <input v-if="edit" v-model="title" autofocus />
-      <template v-else>{{ title }}</template>
+      <input v-if="edit" v-model="title" ref="input" />
+      <template v-else>{{ task.title }}</template>
     </div>
     <div class="actions" v-if="edit">
       <Button :on-click="handleDelete" v-if="focus">{{ deleteText }}</Button>
@@ -17,10 +17,11 @@
 import Vue from 'vue'
 import Button from '@/components/Button.vue'
 import I18nService from '@/services/I18nService'
+import store from '@/store'
 
 export default Vue.extend({
   name: 'AddTaskButton',
-  props: ['edit', 'onCancel'],
+  props: ['edit', 'onCancel', 'task'],
   methods: {
     handleClick() {
       console.log('handle click')
@@ -36,7 +37,12 @@ export default Vue.extend({
       this.onCancel()
     },
     handleComplete() {
-      console.log('handleComplete')
+      this.handleCancel()
+      store.createTask({
+        title: this.title,
+        date: this.task.date,
+        priority: this.task.priority,
+      })
     },
   },
   data() {
@@ -52,6 +58,9 @@ export default Vue.extend({
   },
   components: {
     Button,
+  },
+  mounted() {
+    if (this.edit && this.$refs.input) this.$refs.input.focus()
   },
 })
 </script>

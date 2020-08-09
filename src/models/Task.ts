@@ -5,6 +5,7 @@ export default class Task extends createModel(
     title: '',
     date: 0,
     priority: 0,
+    ended: false,
   },
   'Task',
 ) {}

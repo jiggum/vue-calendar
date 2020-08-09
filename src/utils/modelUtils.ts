@@ -32,7 +32,7 @@ export const createModel = <TValues>(
       this.id = empty ? '' : uuidv4()
       this.updatedTime = empty ? 0 : Date.now()
       const keys = [
-        Object.keys(defaultValues),
+          ...Object.keys(defaultValues),
         'id',
         'updatedTime',
       ] as (keyof TValues & TBaseModelFields)[]
@@ -43,6 +43,7 @@ export const createModel = <TValues>(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (values && values[key]) || defaultValues[key] || (this as any)[key],
           writable: false,
+          enumerable: true,
         })
       })
     }
