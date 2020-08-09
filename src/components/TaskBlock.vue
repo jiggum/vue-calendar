@@ -3,7 +3,7 @@
     <div
       class="presenter"
       :class="{ active: editState, focus, disabled: this.task.ended }"
-      :style="{ transform: `translateX(${swipeDiff}px)`, opacity }"
+      :style="{ transform: `translateX(${swipeDiff}px)`, opacity, backgroundColor }"
       ref="presenter"
     >
       <template v-if="editState">
@@ -32,6 +32,9 @@ import Vue from 'vue'
 import Button from '@/components/Button.vue'
 import I18nService from '@/services/I18nService'
 import store from '@/store'
+import { mixColor } from '@/utils/colorUtils'
+
+const ENDED_COLOR = '#969DAB'
 
 export default Vue.extend({
   name: 'AddTaskButton',
@@ -61,6 +64,15 @@ export default Vue.extend({
       this.editState = false
       if (this.onCancel) this.onCancel()
     },
+    setEnded() {
+      store.upsertTask({
+        title: this.title,
+        ended: true,
+        id: this.task.id,
+        date: this.task.date,
+        priority: this.task.priority,
+      })
+    },
     handleComplete() {
       if (this.editState) {
         store.upsertTask({
@@ -71,13 +83,7 @@ export default Vue.extend({
           ended: this.task.ended,
         })
       } else {
-        store.upsertTask({
-          title: this.title,
-          ended: true,
-          id: this.task.id,
-          date: this.task.date,
-          priority: this.task.priority,
-        })
+        this.setEnded()
       }
       this.handleCancel()
     },
@@ -91,6 +97,11 @@ export default Vue.extend({
       } else {
         this.opacity = 1
       }
+      if (this.backgroundColor === ENDED_COLOR) {
+        this.setEnded()
+      } else {
+        this.backgroundColor = undefined
+      }
     },
     handleTouchEnd() {
       if (this.swipeDiff === 0) { this.handleClick() }
@@ -102,17 +113,30 @@ export default Vue.extend({
       } else {
         this.opacity = 1
       }
+      if (this.backgroundColor === ENDED_COLOR) {
+        this.setEnded()
+      } else {
+        this.backgroundColor = undefined
+      }
     },
     handleMouseMove(e: MouseEvent) {
       this.swipeDiff = e.clientX - this.originMouseClientX
       if (this.swipeDiff <= 0 && e.target) {
         this.opacity = Math.max(1 + this.swipeDiff / (e.target.clientWidth / 2), 0)
       }
+      if (this.swipeDiff >= 0 && e.target) {
+        const ratio = Math.min(this.swipeDiff / (e.target.clientWidth / 2), 1)
+        this.backgroundColor = mixColor('#5AAAFA', ENDED_COLOR, ratio)
+      }
     },
     handleTouchMove(e: TouchEvent) {
       this.swipeDiff = e.touches[0].clientX - this.originMouseClientX
       if (this.swipeDiff <= 0 && e.target) {
         this.opacity = Math.max(1 + this.swipeDiff / (e.target.clientWidth / 2), 0)
+      }
+      if (this.swipeDiff >= 0 && e.target) {
+        const ratio = Math.min(this.swipeDiff / (e.target.clientWidth / 2), 1)
+        this.backgroundColor = mixColor('#5AAAFA', ENDED_COLOR, ratio)
       }
     },
     handleMouseDown(e: MouseEvent) {
@@ -137,6 +161,7 @@ export default Vue.extend({
       originMouseClientX: 0,
       swipeDiff: 0,
       opacity: 1,
+      backgroundColor: undefined,
       deleteText: I18nService.t('word.delete'),
       editText: I18nService.t('word.edit'),
       cancelText: I18nService.t('word.cancel'),
