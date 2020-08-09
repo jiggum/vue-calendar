@@ -50,6 +50,7 @@ import store from '@/store'
 import { mixColor } from '@/utils/colorUtils'
 
 const ENDED_COLOR = '#969DAB'
+const DRAG_THRESHOLD = 3
 
 export default Vue.extend({
   name: 'AddTaskButton',
@@ -123,7 +124,10 @@ export default Vue.extend({
       this.handleCancel()
     },
     handleMoveEnd() {
-      if (this.mouseDiffX === 0 && this.mouseDiffY === 0) { this.handleClick() }
+      if (
+        Math.abs(this.mouseDiffX) <= DRAG_THRESHOLD
+        && Math.abs(this.mouseDiffY) <= DRAG_THRESHOLD
+      ) { this.handleClick() }
       this.mouseDiffX = 0
       this.mouseDiffY = 0
       if (this.opacity === 0) {
@@ -151,7 +155,10 @@ export default Vue.extend({
     handleMove(e: MouseEvent | TouchEvent, clientX: number, clientY: number) {
       this.mouseDiffX = clientX - this.originMouseClientX
       this.mouseDiffY = clientY - this.originMouseClientY
-      this.setDragging(true)
+      if (
+        Math.abs(this.mouseDiffX) > DRAG_THRESHOLD
+        || Math.abs(this.mouseDiffY) > DRAG_THRESHOLD
+      ) { this.setDragging(true) }
       if (Math.abs(this.mouseDiffX) >= Math.abs(this.mouseDiffY) && this.index === this.initIndex) {
         this.backgroundColor = undefined
         if ((this.task.ended || this.mouseDiffX <= 0) && e.target) {
@@ -162,7 +169,7 @@ export default Vue.extend({
         }
       } else {
         this.opacity = 1
-        this.backgroundColor = '#081F5C'
+        if (this.dragging) this.backgroundColor = '#081F5C'
         if (this.$refs.wrapper) {
           if (Math.abs(this.mouseDiffY) > this.$refs.wrapper.clientHeight * 0.6) {
             if (this.mouseDiffY >= 0 && this.moveDownPriority) {
