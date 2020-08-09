@@ -162,12 +162,12 @@ export default Vue.extend({
       ) { this.setDragging(true) }
       if (Math.abs(this.mouseDiffX) >= Math.abs(this.mouseDiffY) && this.index === this.initIndex) {
         this.backgroundColor = undefined
-        if ((this.task.ended || this.mouseDiffX <= 0) && e.target) {
+        if ((this.task.ended || this.mouseDiffX <= 0) && this.$refs.presenter) {
           this.opacity = Math.max(1 - Math.abs(this.mouseDiffX)
-            / ((e.target as HTMLDivElement).clientWidth / 2), 0)
-        } else if (this.mouseDiffX >= 0 && e.target) {
+            / ((this.$refs.presenter as HTMLDivElement).clientWidth / 2), 0)
+        } else if (this.mouseDiffX >= 0 && this.$refs.presenter) {
           const ratio = Math.min(this.mouseDiffX
-            / ((e.target as HTMLDivElement).clientWidth / 2), 1)
+            / ((this.$refs.presenter as HTMLDivElement).clientWidth / 2), 1)
           this.backgroundColor = mixColor('#5AAAFA', ENDED_COLOR, ratio)
         }
       } else {
