@@ -19,5 +19,7 @@ export default Vue.extend({
 
   body {
     height: 100vh;
+    display: flex;
+    justify-content: center;
   }
 </style>
