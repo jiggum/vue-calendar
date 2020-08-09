@@ -25,6 +25,14 @@ export default Vue.extend({
   name: 'AddTaskButton',
   props: ['edit', 'onCancel', 'task', 'getSectionRef'],
   methods: {
+    autoScroll() {
+      const sectionRef = this.getSectionRef()
+      const wrapprRef = this.$refs.wrapper as HTMLDivElement
+      if (sectionRef && wrapprRef) {
+        const targetOffset = (sectionRef.clientHeight - wrapprRef.clientHeight) / 2
+        sectionRef.scrollTop = wrapprRef.offsetTop - targetOffset
+      }
+    },
     handleClick() {
       if (this.editState) return
       this.focus = !this.focus
@@ -36,12 +44,6 @@ export default Vue.extend({
     handleEdit() {
       this.focus = false
       this.editState = true
-      const sectionRef = this.getSectionRef()
-      const wrapprRef = this.$refs.wrapper as HTMLDivElement
-      if (sectionRef && wrapprRef) {
-        const targetOffset = (sectionRef.clientHeight - wrapprRef.clientHeight) / 2
-        sectionRef.scrollTop = wrapprRef.offsetTop - targetOffset
-      }
     },
     handleCancel() {
       this.editState = false
@@ -84,11 +86,17 @@ export default Vue.extend({
     Button,
   },
   updated() {
-    if (!this.prevEditState && this.editState && this.$refs.input) this.$refs.input.focus()
+    if (!this.prevEditState && this.editState && this.$refs.input) {
+      this.$refs.input.focus()
+      this.autoScroll()
+    }
     this.prevEditState = this.editState
   },
   mounted() {
-    if (this.editState && this.$refs.input) this.$refs.input.focus()
+    if (this.editState && this.$refs.input) {
+      this.$refs.input.focus()
+      this.autoScroll()
+    }
   },
 })
 </script>
