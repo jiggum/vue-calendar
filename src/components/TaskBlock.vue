@@ -51,6 +51,7 @@ import { mixColor } from '@/utils/colorUtils'
 
 const ENDED_COLOR = '#969DAB'
 const DRAG_THRESHOLD = 3
+const MOVE_HEIGHT_RATIO_THRESHOLD = 0.6
 
 export default Vue.extend({
   name: 'AddTaskButton',
@@ -171,7 +172,10 @@ export default Vue.extend({
         this.opacity = 1
         if (this.dragging) this.backgroundColor = '#081F5C'
         if (this.$refs.wrapper) {
-          if (Math.abs(this.mouseDiffY) > this.$refs.wrapper.clientHeight * 0.6) {
+          if (
+            Math.abs(this.mouseDiffY)
+            > this.$refs.wrapper.clientHeight * MOVE_HEIGHT_RATIO_THRESHOLD
+          ) {
             if (this.mouseDiffY >= 0 && this.moveDownPriority) {
               store.upsertTask({
                 title: this.task.title,
@@ -180,8 +184,10 @@ export default Vue.extend({
                 priority: this.moveDownPriority,
                 ended: this.task.ended,
               })
-              this.originMouseClientY = clientY + this.$refs.wrapper.clientHeight * 0.4
-              this.mouseDiffY = -this.$refs.wrapper.clientHeight * 0.4
+              this.originMouseClientY = clientY
+                + this.$refs.wrapper.clientHeight
+                * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
+              this.mouseDiffY = -this.$refs.wrapper.clientHeight * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
             } else if (this.mouseDiffY < 0 && this.moveUpPriority) {
               store.upsertTask({
                 title: this.task.title,
@@ -190,8 +196,10 @@ export default Vue.extend({
                 priority: this.moveUpPriority,
                 ended: this.task.ended,
               })
-              this.originMouseClientY = clientY - this.$refs.wrapper.clientHeight * 0.4
-              this.mouseDiffY = this.$refs.wrapper.clientHeight * 0.4
+              this.originMouseClientY = clientY
+                - this.$refs.wrapper.clientHeight
+                * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
+              this.mouseDiffY = this.$refs.wrapper.clientHeight * (1 - MOVE_HEIGHT_RATIO_THRESHOLD)
             }
           }
         }
