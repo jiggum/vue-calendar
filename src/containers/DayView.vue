@@ -53,10 +53,20 @@ export default Vue.extend({
       return `${this.month}${I18nService.t('time.month')} ${this.date}${I18nService.t('time.day')} (${dayText})`
     },
     todoTasks() {
-      return this.store.tasks.filter((task: Task) => !task.ended).values()
+      return this
+        .store
+        .tasks
+        .filter((task: Task) => !task.ended)
+        .values()
+        .sort((left: Task, right: Task) => left.updatedTime - right.updatedTime)
     },
     endedTasks() {
-      return this.store.tasks.filter((task: Task) => task.ended).values()
+      return this
+        .store
+        .tasks
+        .filter((task: Task) => task.ended)
+        .values()
+        .sort((left: Task, right: Task) => right.updatedTime - left.updatedTime)
     },
     taskTodoText() {
       return `${I18nService.t('word.taskTodo')} (${this.todoTasks.length})`
