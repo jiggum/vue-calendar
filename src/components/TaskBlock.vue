@@ -1,6 +1,10 @@
 <template>
   <div class="Task" ref="wrapper">
-    <div class="presenter" :class="{ active: editState, focus }" @click="handleClick">
+    <div
+      class="presenter"
+      :class="{ active: editState, focus, disabled: this.task.ended }"
+      @click="handleClick"
+    >
       <template v-if="editState">
         <input v-model="title" @keyup.enter="handleComplete" ref="input" />
       </template>
@@ -34,7 +38,7 @@ export default Vue.extend({
       }
     },
     handleClick() {
-      if (this.editState) return
+      if (this.editState || this.task.ended) return
       this.focus = !this.focus
     },
     handleDelete() {
@@ -126,9 +130,14 @@ export default Vue.extend({
       background-color: #007AFF;
     }
 
+    &.disabled {
+      background-color: #969DAB;
+      text-decoration: line-through;
+    }
+
     input {
       background: transparent;
-      color: #ffffff;
+      color: #FFFFFF;
       border: none;
       outline: none;
       width: 100%;

@@ -23,6 +23,12 @@
       </div>
       <div class="taskSection">
         <div class="title">{{ taskEndedText }}</div>
+        <div class="taskContainer">
+          <AddTaskButton :onClick="initTask" />
+          <template v-for="task in endedTasks">
+            <TaskBlock :key="task.getKey()" :task="task" :getSectionRef="getSectionRef"/>
+          </template>
+        </div>
       </div>
     </div>
   </section>
@@ -122,8 +128,10 @@ section {
     margin: 0 24px;
 
     .taskSection {
-      &:not(:first-child) {
-        margin-top: 60px;
+      margin-top: 60px;
+
+      &:first-child {
+        margin-top: 20px;
       }
 
       .title {
