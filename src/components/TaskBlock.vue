@@ -3,7 +3,8 @@
     <div
       class="presenter"
       :class="{ active: editState, focus, disabled: this.task.ended }"
-      @click="handleClick"
+      :style="{ transform: `translateX(${swipeDiff}px)`, opacity }"
+      ref="presenter"
     >
       <template v-if="editState">
         <input
@@ -80,6 +81,52 @@ export default Vue.extend({
       }
       this.handleCancel()
     },
+    handleMouseUp() {
+      if (this.swipeDiff === 0) { this.handleClick() }
+      this.swipeDiff = 0
+      document.removeEventListener('mousemove', this.handleMouseMove)
+      document.removeEventListener('mouseup', this.handleMouseUp)
+      if (this.opacity === 0) {
+        this.handleDelete()
+      } else {
+        this.opacity = 1
+      }
+    },
+    handleTouchEnd() {
+      if (this.swipeDiff === 0) { this.handleClick() }
+      this.swipeDiff = 0
+      document.removeEventListener('touchmove', this.handleTouchMove)
+      document.removeEventListener('touchend', this.handleTouchEnd)
+      if (this.opacity === 0) {
+        this.handleDelete()
+      } else {
+        this.opacity = 1
+      }
+    },
+    handleMouseMove(e: MouseEvent) {
+      this.swipeDiff = e.clientX - this.originMouseClientX
+      if (this.swipeDiff <= 0 && e.target) {
+        this.opacity = Math.max(1 + this.swipeDiff / (e.target.clientWidth / 2), 0)
+      }
+    },
+    handleTouchMove(e: TouchEvent) {
+      this.swipeDiff = e.touches[0].clientX - this.originMouseClientX
+      if (this.swipeDiff <= 0 && e.target) {
+        this.opacity = Math.max(1 + this.swipeDiff / (e.target.clientWidth / 2), 0)
+      }
+    },
+    handleMouseDown(e: MouseEvent) {
+      if (this.editState || this.focus) return
+      this.originMouseClientX = e.clientX
+      document.addEventListener('mousemove', this.handleMouseMove)
+      document.addEventListener('mouseup', this.handleMouseUp)
+    },
+    handleTouchstart(e: TouchEvent) {
+      if (this.editState || this.focus) return
+      this.originMouseClientX = e.touches[0].clientX
+      document.addEventListener('touchmove', this.handleTouchMove)
+      document.addEventListener('touchend', this.handleTouchEnd)
+    },
   },
   data() {
     return {
@@ -87,6 +134,9 @@ export default Vue.extend({
       focus: false,
       error: false,
       editState: this.edit,
+      originMouseClientX: 0,
+      swipeDiff: 0,
+      opacity: 1,
       deleteText: I18nService.t('word.delete'),
       editText: I18nService.t('word.edit'),
       cancelText: I18nService.t('word.cancel'),
@@ -119,6 +169,20 @@ export default Vue.extend({
       this.$refs.input.focus()
       this.autoScroll()
     }
+    if (this.$refs.presenter) {
+      this.$refs.presenter.addEventListener('mousedown', this.handleMouseDown)
+      this.$refs.presenter.addEventListener('touchstart', this.handleTouchstart)
+    }
+  },
+  beforeDestroy() {
+    document.removeEventListener('mousemove', this.handleMouseMove)
+    document.removeEventListener('mouseup', this.handleMouseUp)
+    document.removeEventListener('touchmove', this.handleTouchMove)
+    document.removeEventListener('touchend', this.handleTouchEnd)
+    if (this.$refs.presenter) {
+      this.$refs.presenter.removeEventListener('mousedown', this.handleMouseDown)
+      this.$refs.presenter.removeEventListener('touchstart', this.handleTouchstart)
+    }
   },
 })
 </script>
@@ -138,6 +202,7 @@ export default Vue.extend({
     background-color: #5AAAFA;
     margin: 4px 0;
     padding: 0 16px;
+    cursor: pointer;
 
     &.active {
       background-color: #081F5C;

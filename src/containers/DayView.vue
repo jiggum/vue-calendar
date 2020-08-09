@@ -156,7 +156,7 @@ section {
   width: calc(100% - 48px);
   height: 100%;
   padding: 0 24px;
-  overflow: auto;
+  overflow-y: auto;
   max-width: 375px;
 
   &:not(:first-child) {
