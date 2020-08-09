@@ -9,9 +9,7 @@ export default {
     tasks: LocalStorageService.get(LocalStorageKeyTypes.TASKS) || new Collection(Task, []),
   },
   upsertTask(task: Partial<Task>) {
-    console.log(task)
     this.state.tasks = this.state.tasks.upsert(task)
-    console.log(this.state.tasks.values())
     LocalStorageService.set(LocalStorageKeyTypes.TASKS, this.state.tasks)
   },
   deleteTask(key: string) {

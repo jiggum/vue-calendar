@@ -9,12 +9,12 @@ class RouteService {
     window.location.hash = path
   }
 
-  match(path: string) {
-    const currentPath = this.getPath()
+  match(path: string, currentPath?: string) {
+    const targetPath = currentPath ? currentPath.replace(/^#/, '') : this.getPath()
     const pathArray = path.split(/:\w+/)
-    const pathRegex = RegExp(pathArray.join('(\\w+)'))
+    const pathRegex = RegExp(`^${pathArray.join('(\\w+)')}`)
     const params = path.match(/(?!:)\w+/g) || []
-    const execResult = pathRegex.exec(currentPath)
+    const execResult = pathRegex.exec(targetPath)
     if (!execResult) return null
     return params.reduce(
       (acc, val, index) => ({

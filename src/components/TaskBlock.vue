@@ -8,7 +8,9 @@
       <template v-if="editState">
         <input v-model="title" @keyup.enter="handleComplete" ref="input" />
       </template>
-      <template v-else>{{ task.title }}</template>
+      <template v-else>
+        <div class="title">{{ task.title }}</div>
+      </template>
     </div>
     <div class="actions" v-if="editState || focus">
       <Button :on-click="handleDelete" v-if="focus">{{ deleteText }}</Button>
@@ -54,7 +56,6 @@ export default Vue.extend({
       if (this.onCancel) this.onCancel()
     },
     handleComplete() {
-      console.log(this.editState)
       if (this.editState) {
         store.upsertTask({
           title: this.title,
@@ -113,14 +114,13 @@ export default Vue.extend({
     width: 100%;
     height: 68px;
     border-radius: 12px;
-    font-size : 17px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
     background-color: #5AAAFA;
     margin: 4px 0;
-    color: #FFFFFF;
+    padding: 0 16px;
 
     &.active {
       background-color: #081F5C;
@@ -133,6 +133,7 @@ export default Vue.extend({
     &.disabled {
       background-color: #969DAB;
       text-decoration: line-through;
+      text-decoration-color: #FFFFFF;
     }
 
     input {
@@ -142,9 +143,15 @@ export default Vue.extend({
       outline: none;
       width: 100%;
       text-align: center;
-      padding: 0 16px;
       font-family: inherit;
       font-size: 17px;
+    }
+
+    .title {
+      font-size : 17px;
+      color: #FFFFFF;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 

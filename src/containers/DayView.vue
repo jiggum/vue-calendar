@@ -3,6 +3,16 @@
     <header>
       <div class="year">{{ year }}</div>
       <div class="dateText">{{ dateText }}</div>
+      <svg width="20" height="20" viewBox="0 0 20 20" class="navigate left" @click="navigateLeft">
+        <rect x="0.5" y="0.5" width="19" height="19" rx="3.5" stroke="#000000" fill="none"/>
+        {{ /* eslint-disable-next-line max-len */ }}
+        <path d="M3.57574 9.57574C3.34142 9.81005 3.34142 10.1899 3.57574 10.4243L7.39411 14.2426C7.62843 14.477 8.00833 14.477 8.24264 14.2426C8.47696 14.0083 8.47696 13.6284 8.24264 13.3941L4.84853 10L8.24264 6.60589C8.47696 6.37157 8.47696 5.99167 8.24264 5.75736C8.00833 5.52304 7.62843 5.52304 7.39411 5.75736L3.57574 9.57574ZM17 9.4L4 9.4V10.6L17 10.6V9.4Z" fill="#000000"/>
+      </svg>
+      <svg width="20" height="20" viewBox="0 0 20 20" class="navigate right" @click="navigateRight">
+        <rect x="0.5" y="0.5" width="19" height="19" rx="3.5" stroke="#000000" fill="none"/>
+        {{ /* eslint-disable-next-line max-len */ }}
+        <path d="M16.4243 10.4243C16.6586 10.1899 16.6586 9.81005 16.4243 9.57574L12.6059 5.75736C12.3716 5.52304 11.9917 5.52304 11.7574 5.75736C11.523 5.99167 11.523 6.37157 11.7574 6.60589L15.1515 10L11.7574 13.3941C11.523 13.6284 11.523 14.0083 11.7574 14.2426C11.9917 14.477 12.3716 14.477 12.6059 14.2426L16.4243 10.4243ZM3 10.6H16V9.4H3V10.6Z" fill="black"/>
+      </svg>
     </header>
     <div class="body">
       <div class="taskSection">
@@ -24,7 +34,6 @@
       <div class="taskSection">
         <div class="title">{{ taskEndedText }}</div>
         <div class="taskContainer">
-          <AddTaskButton :onClick="initTask" />
           <template v-for="task in endedTasks">
             <TaskBlock :key="task.getKey()" :task="task" :getSectionRef="getSectionRef"/>
           </template>
@@ -41,13 +50,28 @@ import DayOfTheWeekTypes, { DayOfTheWeekI18nMap } from '@/consts/DayOfTheWeekTyp
 import AddTaskButton from '@/components/AddTaskButton.vue'
 import TaskBlock from '@/components/TaskBlock.vue'
 import Task from '@/models/Task'
-import { dateToTimestamp } from '@/utils/dateUtils'
+import {
+  dateToTimestamp,
+  timestampToDate,
+  getDay,
+  getDate,
+  getYear,
+  getMonth,
+} from '@/utils/dateUtils'
 import store from '@/store'
+import RouteService from '@/services/RouteService'
 
 export default Vue.extend({
   name: 'DayView',
-  props: ['year', 'month', 'date', 'day'],
+  props: ['year', 'month', 'date', 'now'],
   computed: {
+    day() {
+      return getDay(dateToTimestamp({
+        year: this.year,
+        month: this.month,
+        date: this.date,
+      }))
+    },
     dateText() {
       const dayText = I18nService.t(DayOfTheWeekI18nMap[this.day as DayOfTheWeekTypes])
       return `${this.month}${I18nService.t('time.month')} ${this.date}${I18nService.t('time.day')} (${dayText})`
@@ -56,7 +80,10 @@ export default Vue.extend({
       return this
         .store
         .tasks
-        .filter((task: Task) => !task.ended)
+        .filter((task: Task) => {
+          const { year, month, date } = timestampToDate(task.date)
+          return !task.ended && year === this.year && month === this.month && date === this.date
+        })
         .values()
         .sort((left: Task, right: Task) => left.updatedTime - right.updatedTime)
     },
@@ -64,7 +91,10 @@ export default Vue.extend({
       return this
         .store
         .tasks
-        .filter((task: Task) => task.ended)
+        .filter((task: Task) => {
+          const { year, month, date } = timestampToDate(task.date)
+          return task.ended && year === this.year && month === this.month && date === this.date
+        })
         .values()
         .sort((left: Task, right: Task) => right.updatedTime - left.updatedTime)
     },
@@ -106,19 +136,55 @@ export default Vue.extend({
     getSectionRef(): HTMLElement {
       return this.$refs.section as HTMLElement
     },
+    navigateLeft() {
+      const today = new Date(this.now)
+      const yesterday = today.setDate(today.getDate() - 1).valueOf()
+      RouteService.navigate(`${getYear(yesterday)}/${getMonth(yesterday)}/${getDate(yesterday)}`)
+    },
+    navigateRight() {
+      const today = new Date(this.now)
+      const tomorrow = today.setDate(today.getDate() + 1).valueOf()
+      RouteService.navigate(`${getYear(tomorrow)}/${getMonth(tomorrow)}/${getDate(tomorrow)}`)
+    },
   },
 })
 </script>
 
 <style scoped lang="scss">
 section {
+  position: relative;
   width: calc(100% - 48px);
   height: 100%;
   padding: 0 24px;
   overflow: auto;
   max-width: 375px;
 
+  &:not(:first-child) {
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 64px;
+      bottom: 36px;
+      width: 1px;
+      background-color: #000000;
+    }
+
+    header .navigate.left {
+      display: none;
+    }
+  }
+
+  &:not(:last-child) {
+    header .navigate.right {
+      display: none;
+    }
+  }
+
   header {
+    position: sticky;
+    top: 0;
+    background-color: #FFFFFF;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -127,16 +193,31 @@ section {
 
     .year {
       font-size: 15px;
+      white-space: nowrap;
     }
 
     .dateText {
       font-size: 17px;
+      white-space: nowrap;
+    }
+
+    .navigate {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+
+      &.left {
+        left: 0;
+      }
+
+      &.right {
+        right: 0;
+      }
     }
   }
 
   .body {
-    margin: 0 24px;
-
     .taskSection {
       margin-top: 60px;
 
@@ -147,6 +228,9 @@ section {
       .title {
         font-size: 17px;
         margin-bottom: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .taskContainer {

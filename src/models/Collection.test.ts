@@ -164,7 +164,7 @@ describe('Collection', () => {
       sampleCounters.upsert({
         id: 'id2',
         count: 3,
-        updatedTime: 1,
+        updatedTime: 2,
       }).data,
     ).toEqual(
       new Collection(SampleCounter, [
@@ -176,7 +176,7 @@ describe('Collection', () => {
         {
           id: 'id2',
           count: 3,
-          updatedTime: 1,
+          updatedTime: 2,
         },
       ]).data,
     )
