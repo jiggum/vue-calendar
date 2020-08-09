@@ -26,4 +26,5 @@ export default Vue.extend({
   color: #2c3e50;
   margin-top: 60px;
 }
+  @import 'assets/reset.scss';
 </style>
