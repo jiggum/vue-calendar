@@ -217,10 +217,10 @@ section {
   &:not(:first-child) {
     &::before {
       content: '';
-      position: absolute;
-      left: 0;
+      position: fixed;
       top: 64px;
       bottom: 36px;
+      margin-left: -24px;
       width: 1px;
       background-color: #000000;
     }
@@ -238,6 +238,7 @@ section {
 
   header {
     position: sticky;
+    z-index: 1;
     top: 0;
     background-color: #FFFFFF;
     display: flex;

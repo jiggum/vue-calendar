@@ -224,11 +224,12 @@ export default Vue.extend({
       document.addEventListener('mouseup', this.handleMouseUp)
     },
     handleTouchstart(e: TouchEvent) {
+      e.preventDefault()
       if (this.editState || this.focus) return
       this.originMouseClientX = e.touches[0].clientX
       this.originMouseClientY = e.touches[0].clientY
       this.initIndex = this.index
-      document.addEventListener('touchmove', this.handleTouchMove)
+      document.addEventListener('touchmove', this.handleTouchMove, { capture: false })
       document.addEventListener('touchend', this.handleTouchEnd)
     },
   },
