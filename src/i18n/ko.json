@@ -1,0 +1,17 @@
+{
+  "word.taskTodo": "할 일",
+  "word.taskEnded": "끝난 일",
+  "word.cancel": "취소",
+  "word.complete": "완료",
+  "word.delete": "삭제",
+  "word.edit": "수정",
+  "time.sat": "토",
+  "time.sun": "일",
+  "time.mon": "월",
+  "time.tue": "화",
+  "time.wed": "수",
+  "time.thu": "목",
+  "time.fri": "금",
+  "time.month": "월",
+  "time.day": "일"
+}
