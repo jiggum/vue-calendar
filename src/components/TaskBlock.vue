@@ -6,7 +6,12 @@
       @click="handleClick"
     >
       <template v-if="editState">
-        <input v-model="title" @keyup.enter="handleComplete" ref="input" />
+        <input
+          v-model="title"
+          @keyup.enter="handleComplete"
+          ref="input"
+          :class="{ error }"
+        />
       </template>
       <template v-else>
         <div class="title">{{ task.title }}</div>
@@ -80,12 +85,24 @@ export default Vue.extend({
     return {
       title: this.task.title,
       focus: false,
+      error: false,
       editState: this.edit,
       deleteText: I18nService.t('word.delete'),
       editText: I18nService.t('word.edit'),
       cancelText: I18nService.t('word.cancel'),
       completeText: I18nService.t('word.complete'),
     }
+  },
+  watch: {
+    title(val) {
+      if (val.length > 20) {
+        this.title = val.slice(0, 20)
+        this.error = true
+      }
+      if (val.length < 20) {
+        this.error = false
+      }
+    },
   },
   components: {
     Button,
@@ -145,6 +162,10 @@ export default Vue.extend({
       text-align: center;
       font-family: inherit;
       font-size: 17px;
+
+      &.error {
+        color: #FF0000;
+      }
     }
 
     .title {
