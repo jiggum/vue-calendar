@@ -18,6 +18,6 @@ export default Vue.extend({
   @import 'assets/reset.scss';
 
   body {
-    margin: 0 24px 24px;
+    height: 100vh;
   }
 </style>

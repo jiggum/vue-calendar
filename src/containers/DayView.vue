@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section ref="section">
     <header>
       <div class="year">{{ year }}</div>
       <div class="dateText">{{ dateText }}</div>
@@ -10,9 +10,15 @@
         <div class="taskContainer">
           <AddTaskButton :onClick="initTask" />
           <template v-for="task in todoTasks">
-            <TaskBlock :key="task.getKey()" :task="task" />
+            <TaskBlock :key="task.getKey()" :task="task" :getSectionRef="getSectionRef"/>
           </template>
-          <TaskBlock v-if="state.init" :edit="true" :onCancel="resetInit" :task="newTask"/>
+          <TaskBlock
+            v-if="state.init"
+            :edit="true"
+            :onCancel="resetInit"
+            :task="newTask"
+            :getSectionRef="getSectionRef"
+          />
         </div>
       </div>
       <div class="taskSection">
@@ -59,7 +65,7 @@ export default Vue.extend({
           month: this.month,
           date: this.date,
         }),
-      })
+      }, true)
     },
   },
   components: {
@@ -81,13 +87,19 @@ export default Vue.extend({
     resetInit() {
       this.state.init = false
     },
+    getSectionRef(): HTMLElement {
+      return this.$refs.section as HTMLElement
+    },
   },
 })
 </script>
 
 <style scoped lang="scss">
 section {
-  width: 100%;
+  width: calc(100% - 48px);
+  height: 100%;
+  padding: 0 24px;
+  overflow: auto;
   max-width: 375px;
 
   header {
@@ -107,7 +119,7 @@ section {
   }
 
   .body {
-    margin-top: 24px;
+    margin: 0 24px;
 
     .taskSection {
       &:not(:first-child) {
