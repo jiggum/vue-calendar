@@ -1,30 +1,23 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
-  </div>
+  <DayView year="2020" month="8" day="SUN" date="3"/>
 </template>
 
 <script lang="ts">
-import Vue from 'vue';
-import HelloWorld from './components/HelloWorld.vue';
+import Vue from 'vue'
+import DayView from '@/containers/DayView.vue'
 
 export default Vue.extend({
   name: 'App',
   components: {
-    HelloWorld,
+    DayView,
   },
-});
+})
 </script>
 
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
   @import 'assets/reset.scss';
+
+  body {
+    margin: 0 24px 24px;
+  }
 </style>
