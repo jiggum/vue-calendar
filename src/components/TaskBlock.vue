@@ -2,8 +2,23 @@
   <div class="Task" ref="wrapper">
     <div
       class="presenter"
-      :class="{ active: editState, focus, disabled: this.task.ended }"
-      :style="{ transform: `translateX(${swipeDiff}px)`, opacity, backgroundColor }"
+      :class="{
+        active: editState,
+        focus,
+        disabled: this.task.ended,
+        dragging: mouseDiffX || mouseDiffY
+      }"
+      :style="{
+        transform:
+          `translate(
+            ${Math.abs(mouseDiffX) >= Math.abs(mouseDiffY) &&
+                this.index === this.initIndex ? mouseDiffX : 0}px,
+            ${Math.abs(mouseDiffX) < Math.abs(mouseDiffY) ||
+                this.index !== this.initIndex ? mouseDiffY : 0 }px
+          )`,
+        opacity,
+        backgroundColor,
+      }"
       ref="presenter"
     >
       <template v-if="editState">
@@ -38,7 +53,19 @@ const ENDED_COLOR = '#969DAB'
 
 export default Vue.extend({
   name: 'AddTaskButton',
-  props: ['edit', 'onCancel', 'task', 'getSectionRef'],
+  props: [
+    'edit',
+    'resetInit',
+    'task',
+    'endPriroity',
+    'createPriority',
+    'moveUpPriority',
+    'moveDownPriority',
+    'getSectionRef',
+    'dragging',
+    'setDragging',
+    'index',
+  ],
   methods: {
     autoScroll() {
       const sectionRef = this.getSectionRef()
@@ -62,7 +89,7 @@ export default Vue.extend({
     },
     handleCancel() {
       this.editState = false
-      if (this.onCancel) this.onCancel()
+      if (this.resetInit) this.resetInit()
     },
     setEnded() {
       store.upsertTask({
@@ -70,84 +97,120 @@ export default Vue.extend({
         ended: true,
         id: this.task.id,
         date: this.task.date,
-        priority: this.task.priority,
+        priority: this.endPriroity,
       })
     },
     handleComplete() {
       if (this.editState) {
-        store.upsertTask({
-          title: this.title,
-          id: this.task.id,
-          date: this.task.date,
-          priority: this.task.priority,
-          ended: this.task.ended,
-        })
+        if (!this.task.getKey()) {
+          store.upsertTask({
+            title: this.title,
+            date: this.task.date,
+            priority: this.createPriority,
+          })
+        } else {
+          store.upsertTask({
+            title: this.title,
+            id: this.task.id,
+            date: this.task.date,
+            priority: this.task.priority,
+            ended: this.task.ended,
+          })
+        }
       } else {
         this.setEnded()
       }
       this.handleCancel()
     },
+    handleMoveEnd() {
+      if (this.mouseDiffX === 0 && this.mouseDiffY === 0) { this.handleClick() }
+      this.mouseDiffX = 0
+      this.mouseDiffY = 0
+      if (this.opacity === 0) {
+        this.handleDelete()
+      } else {
+        this.opacity = 1
+      }
+      if (this.backgroundColor === ENDED_COLOR) {
+        this.setEnded()
+      } else {
+        this.backgroundColor = undefined
+      }
+      this.setDragging(false)
+    },
     handleMouseUp() {
-      if (this.swipeDiff === 0) { this.handleClick() }
-      this.swipeDiff = 0
       document.removeEventListener('mousemove', this.handleMouseMove)
       document.removeEventListener('mouseup', this.handleMouseUp)
-      if (this.opacity === 0) {
-        this.handleDelete()
-      } else {
-        this.opacity = 1
-      }
-      if (this.backgroundColor === ENDED_COLOR) {
-        this.setEnded()
-      } else {
-        this.backgroundColor = undefined
-      }
+      this.handleMoveEnd()
     },
     handleTouchEnd() {
-      if (this.swipeDiff === 0) { this.handleClick() }
-      this.swipeDiff = 0
       document.removeEventListener('touchmove', this.handleTouchMove)
       document.removeEventListener('touchend', this.handleTouchEnd)
-      if (this.opacity === 0) {
-        this.handleDelete()
+      this.handleMoveEnd()
+    },
+    handleMove(e: MouseEvent | TouchEvent, clientX: number, clientY: number) {
+      this.mouseDiffX = clientX - this.originMouseClientX
+      this.mouseDiffY = clientY - this.originMouseClientY
+      this.setDragging(true)
+      if (Math.abs(this.mouseDiffX) >= Math.abs(this.mouseDiffY) && this.index === this.initIndex) {
+        if (this.mouseDiffX <= 0 && e.target) {
+          this.opacity = Math.max(1 + this.mouseDiffX / (e.target.clientWidth / 2), 0)
+        }
+        if (this.mouseDiffX >= 0 && e.target) {
+          const ratio = Math.min(this.mouseDiffX / (e.target.clientWidth / 2), 1)
+          this.backgroundColor = mixColor('#5AAAFA', ENDED_COLOR, ratio)
+        } else {
+          this.backgroundColor = undefined
+        }
       } else {
         this.opacity = 1
-      }
-      if (this.backgroundColor === ENDED_COLOR) {
-        this.setEnded()
-      } else {
-        this.backgroundColor = undefined
+        this.backgroundColor = '#081F5C'
+        if (this.$refs.wrapper) {
+          if (Math.abs(this.mouseDiffY) > this.$refs.wrapper.clientHeight * 0.6) {
+            if (this.mouseDiffY >= 0 && this.moveDownPriority) {
+              store.upsertTask({
+                title: this.task.title,
+                id: this.task.id,
+                date: this.task.date,
+                priority: this.moveDownPriority,
+                ended: this.task.ended,
+              })
+              this.originMouseClientY = clientY + this.$refs.wrapper.clientHeight * 0.4
+              this.mouseDiffY = -this.$refs.wrapper.clientHeight * 0.4
+            } else if (this.mouseDiffY < 0 && this.moveUpPriority) {
+              store.upsertTask({
+                title: this.task.title,
+                id: this.task.id,
+                date: this.task.date,
+                priority: this.moveUpPriority,
+                ended: this.task.ended,
+              })
+              this.originMouseClientY = clientY - this.$refs.wrapper.clientHeight * 0.4
+              this.mouseDiffY = this.$refs.wrapper.clientHeight * 0.4
+            }
+          }
+        }
       }
     },
     handleMouseMove(e: MouseEvent) {
-      this.swipeDiff = e.clientX - this.originMouseClientX
-      if (this.swipeDiff <= 0 && e.target) {
-        this.opacity = Math.max(1 + this.swipeDiff / (e.target.clientWidth / 2), 0)
-      }
-      if (this.swipeDiff >= 0 && e.target) {
-        const ratio = Math.min(this.swipeDiff / (e.target.clientWidth / 2), 1)
-        this.backgroundColor = mixColor('#5AAAFA', ENDED_COLOR, ratio)
-      }
+      this.handleMove(e, e.clientX, e.clientY)
     },
     handleTouchMove(e: TouchEvent) {
-      this.swipeDiff = e.touches[0].clientX - this.originMouseClientX
-      if (this.swipeDiff <= 0 && e.target) {
-        this.opacity = Math.max(1 + this.swipeDiff / (e.target.clientWidth / 2), 0)
-      }
-      if (this.swipeDiff >= 0 && e.target) {
-        const ratio = Math.min(this.swipeDiff / (e.target.clientWidth / 2), 1)
-        this.backgroundColor = mixColor('#5AAAFA', ENDED_COLOR, ratio)
-      }
+      this.handleMove(e, e.touches[0].clientX, e.touches[0].clientY)
     },
     handleMouseDown(e: MouseEvent) {
       if (this.editState || this.focus) return
       this.originMouseClientX = e.clientX
+      this.originMouseClientY = e.clientY
+      this.initIndex = this.index
       document.addEventListener('mousemove', this.handleMouseMove)
       document.addEventListener('mouseup', this.handleMouseUp)
     },
     handleTouchstart(e: TouchEvent) {
       if (this.editState || this.focus) return
       this.originMouseClientX = e.touches[0].clientX
+      this.originMouseClientY = e.touches[0].clientY
+      this.initIndex = this.index
       document.addEventListener('touchmove', this.handleTouchMove)
       document.addEventListener('touchend', this.handleTouchEnd)
     },
@@ -159,7 +222,10 @@ export default Vue.extend({
       error: false,
       editState: this.edit,
       originMouseClientX: 0,
-      swipeDiff: 0,
+      originMouseClientY: 0,
+      initIndex: this.index,
+      mouseDiffX: 0,
+      mouseDiffY: 0,
       opacity: 1,
       backgroundColor: undefined,
       deleteText: I18nService.t('word.delete'),
@@ -176,6 +242,12 @@ export default Vue.extend({
       }
       if (val.length < 20) {
         this.error = false
+      }
+    },
+    dragging(val) {
+      if (val) {
+        this.focus = false
+        this.handleCancel()
       }
     },
   },
@@ -228,6 +300,7 @@ export default Vue.extend({
     margin: 4px 0;
     padding: 0 16px;
     cursor: pointer;
+    user-select: none;
 
     &.active {
       background-color: #081F5C;
@@ -241,6 +314,11 @@ export default Vue.extend({
       background-color: #969DAB;
       text-decoration: line-through;
       text-decoration-color: #FFFFFF;
+    }
+
+    &.dragging {
+      position: relative;
+      z-index: 1;
     }
 
     input {

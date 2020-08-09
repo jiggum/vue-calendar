@@ -19,14 +19,36 @@
         <div class="title">{{ taskTodoText }}</div>
         <div class="taskContainer">
           <AddTaskButton :onClick="initTask" />
-          <template v-for="task in todoTasks">
-            <TaskBlock :key="task.getKey()" :task="task" :getSectionRef="getSectionRef"/>
+          <template v-for="(task, index) in todoTasks">
+            <TaskBlock
+              :key="task.getKey()"
+              :task="task"
+              :endPriroity="endedTasks.length > 0 ? endedTasks[0].priority - 1 : 0"
+              :moveUpPriority="
+                index > 1 ?
+                  (todoTasks[index - 1].priority + todoTasks[index - 2].priority) / 2 :
+                  (index === 1 ? todoTasks[0].priority - 1 : undefined)"
+              :moveDownPriority="
+                index < todoTasks.length - 2 ?
+                  (todoTasks[index + 1].priority + todoTasks[index + 2].priority) / 2 :
+                  (index === todoTasks.length - 2 ?
+                    todoTasks[todoTasks.length - 1].priority + 1 :
+                    undefined)"
+              :getSectionRef="getSectionRef"
+              :dragging="state.dragging"
+              :setDragging="setDragging"
+              :index="index"
+              :resetInit="resetInit"
+            />
           </template>
           <TaskBlock
             v-if="state.init"
             :edit="true"
-            :onCancel="resetInit"
+            :resetInit="resetInit"
             :task="newTask"
+            :createPriority="
+              todoTasks.length > 0 ?
+                todoTasks[todoTasks.length - 1].priority + 1 : 0"
             :getSectionRef="getSectionRef"
           />
         </div>
@@ -34,8 +56,26 @@
       <div class="taskSection">
         <div class="title">{{ taskEndedText }}</div>
         <div class="taskContainer">
-          <template v-for="task in endedTasks">
-            <TaskBlock :key="task.getKey()" :task="task" :getSectionRef="getSectionRef"/>
+          <template v-for="(task, index) in endedTasks">
+            <TaskBlock
+              :key="task.getKey()"
+              :task="task"
+              :moveUpPriority="
+                index > 1 ?
+                  (endedTasks[index - 1].priority + endedTasks[index - 2].priority) / 2 :
+                  (index === 1 ? endedTasks[0].priority - 1 : undefined)"
+              :moveDownPriority="
+                index < endedTasks.length - 2 ?
+                  (endedTasks[index + 1].priority + endedTasks[index + 2].priority) / 2 :
+                  (index === endedTasks.length - 2 ?
+                    endedTasks[endedTasks.length - 1].priority + 1 :
+                    undefined)"
+              :getSectionRef="getSectionRef"
+              :dragging="state.dragging"
+              :setDragging="setDragging"
+              :index="index"
+              :resetInit="resetInit"
+            />
           </template>
         </div>
       </div>
@@ -85,7 +125,10 @@ export default Vue.extend({
           return !task.ended && year === this.year && month === this.month && date === this.date
         })
         .values()
-        .sort((left: Task, right: Task) => left.updatedTime - right.updatedTime)
+        .sort((left: Task, right: Task) => {
+          if (left.priority === right.priority) return left.updatedTime - right.updatedTime
+          return left.priority - right.priority
+        })
     },
     endedTasks() {
       return this
@@ -96,7 +139,10 @@ export default Vue.extend({
           return task.ended && year === this.year && month === this.month && date === this.date
         })
         .values()
-        .sort((left: Task, right: Task) => right.updatedTime - left.updatedTime)
+        .sort((left: Task, right: Task) => {
+          if (left.priority === right.priority) return right.updatedTime - left.updatedTime
+          return left.priority - right.priority
+        })
     },
     taskTodoText() {
       return `${I18nService.t('word.taskTodo')} (${this.todoTasks.length})`
@@ -122,6 +168,7 @@ export default Vue.extend({
     return {
       state: {
         init: false,
+        dragging: false,
       },
       store: store.state,
     }
@@ -146,6 +193,9 @@ export default Vue.extend({
       const tomorrow = today.setDate(today.getDate() + 1).valueOf()
       RouteService.navigate(`${getYear(tomorrow)}/${getMonth(tomorrow)}/${getDate(tomorrow)}`)
     },
+    setDragging(dragging: boolean) {
+      this.state.dragging = dragging
+    },
   },
 })
 </script>
@@ -157,6 +207,7 @@ section {
   height: 100%;
   padding: 0 24px;
   overflow-y: auto;
+  overflow-x: hidden;
   max-width: 375px;
 
   &:not(:first-child) {
